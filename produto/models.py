@@ -33,7 +33,7 @@ class Produto(models.Model):
                 original_width, original_height = img_pillow.size
 
                 if original_width <= new_width:
-                    print('retornando imagem original menor que a nova largura')
+                    #print('retornando imagem original menor que a nova largura')
                     return  # Não precisa redimensionar
 
                 new_height = round((new_width * original_height) / original_width)
@@ -42,7 +42,7 @@ class Produto(models.Model):
                     Image.Resampling.LANCZOS
                 )
                 new_image.save(img_full_path, optimize=True, quality=50)
-                print('imagem foi redimensionada')
+                #print('imagem foi redimensionada')
 
         except Exception as e:
             print(f"Erro ao abrir imagem {img_full_path}: {e}")
