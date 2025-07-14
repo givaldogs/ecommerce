@@ -10,6 +10,7 @@ class ItemPedidoInline(admin.TabularInline):
 
 class PedidoAdmin(admin.ModelAdmin):
     inlines = [
+        
         ItemPedidoInline
     ]
 
