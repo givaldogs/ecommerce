@@ -140,7 +140,7 @@ USE_TZ = True
 #MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 #--------------------------- chatgpt versao Django 5.2.3
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [
     BASE_DIR / 'templates' / 'static'
