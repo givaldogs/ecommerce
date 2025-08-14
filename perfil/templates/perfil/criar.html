@@ -9,16 +9,27 @@
     </div>
     <div class="col-lg">
         <h1>Cadastro</h1>
+
+        {% if senha_obrigatoria %}
+        <div class="alert alert-info">
+            A senha e a confirmação são obrigatórias para cadastro.
+        </div>
+        {% else %}
+        <div class="alert alert-secondary">
+            Deixe os campos de senha em branco se não quiser alterar a senha.
+        </div>
+        {% endif %}
+
         <form method="POST" action="">
             {% csrf_token %}
             {{ userform|crispy }}
+            {{ perfilform|crispy }}
             <div class="row">
                 <div class="col">
                     <button type="submit" class="btn btn-primary btn-block btn-lg">
                         Cadastrar</button>
                 </div>
             </div>
-
         </form>
     </div>
 </div>

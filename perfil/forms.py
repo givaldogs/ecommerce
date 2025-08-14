@@ -27,13 +27,17 @@ class UserForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.usuario = usuario
 
+        if not self.usuario:
+           self.fields['password'].required = True
+           self.fields['password2'].required = True
+
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'username', 'password', 
                   'password2', 'email')
 
     def clean(self, *args, **kwargs):
-        data = self.data
+        #data = self.data
         cleaned = self.cleaned_data
         validation_error_msgs = {}
 
