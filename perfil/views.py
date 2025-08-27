@@ -2,6 +2,8 @@ from typing import Any
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.http import HttpRequest, HttpResponse
+from django.contrib import messages
+
 
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 import copy
@@ -10,7 +12,7 @@ from django.contrib.auth.models import User
 
 from . import models
 from . import forms
-
+# <a class="dropdown-item" href="{% url 'pedido:lista' %}">Meus pedidos</a>
 
 class BasePerfil(View):
     template_name = 'perfil/criar.html'
@@ -96,7 +98,17 @@ class Criar(BasePerfil):
 
         self.request.session['carrinho'] = self.carrinho
         self.request.session.save()
-        return self.renderizar
+
+        messages.success(
+                self.request,
+                'Seu cadastro foi criado ou atualizado com sucesso'
+        )
+        messages.success(
+            self.request,
+        'Você fez login e pode concluir sua compra'
+        )
+
+        return redirect('perfil:criar')
 
 
 class Atualizar(BasePerfil):
@@ -125,10 +137,40 @@ class Atualizar(BasePerfil):
 
 
 class Login(View):
-    def get(self, *args, **kwargs):
-        return HttpResponse('Login')
+    def post(self, *args, **kwargs):
+        username = self.request.POST.get('username')
+        password = self.request.POST.get('password')
+        print(username, password)    
+        if not username or not password:
+            messages.error(
+            self.request,
+            'Usuário ou senha invalidos'
+            )
+            return redirect('perfil:criar')
+        
+        user = authenticate(self.request,
+            username=username, password=password)
+        
+        if not user:
+            messages.error(
+            self.request,
+            'Usuário ou senha invalidos'
+            )
+            return redirect('perfil:criar')
+           
+        login(self.request, user)
+
+        messages.success(
+            self.request,
+            'Você fez login no sistema e pode concluir a compra'
+            )
+        return redirect('produto:carrinho')
 
 
 class Logout(View):
     def get(self, *args, **kwargs):
-        return HttpResponse('Logout')
+        self.carrinho = copy.deepcopy(self.request.session.get('carrinho', {}))
+        logout(self.request)
+        self.request.session['carrinho'] = self.carrinho
+        self.request.session.save()
+        return redirect('produto:lista')
