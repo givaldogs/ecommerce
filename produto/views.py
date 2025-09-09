@@ -177,6 +177,13 @@ class ResumoDaCompra(View):
         if not self.request.user.is_authenticated:
             return redirect('perfil:criar')
         
+        if not self.request.session.get('carrinho'):
+            messages.error(
+                self.request,
+                'Seu carrinho está vazio'
+            )
+            return redirect('produto:lista')
+
         contexto = {
             'usuario': self.request.user,
             'carrinho': self.request.session['carrinho']
