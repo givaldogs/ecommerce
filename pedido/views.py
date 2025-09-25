@@ -1,7 +1,11 @@
+from typing import Any
+from django.db.models.query import QuerySet
 from django.shortcuts import render, redirect
-from django.views.generic.list import ListView
+from django.urls import reverse 
+#from django.views.generic.list import ListView
+from  django.views.generic import ListView, DetailView
 from django.views import View
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.contrib import messages
 from produto.models import Variacao
 from .models import Pedido, ItemPedido
@@ -9,11 +13,26 @@ from utils import utils
 
 # Create your views here.
 
-class Pagar(View):
-    def get(self, *args, **kwargs):
-        return HttpResponse('Pagar o Pedido')
-   
-   
+class DispatchLoginRequired(View):
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any):
+        if not request.user.is_authenticated:
+            messages.error(request, 'Você precisa estar logado para acessar essa página.')
+            return redirect(reverse('perfil:criar'))
+        
+        return super().dispatch(request, *args, **kwargs)
+
+class Pagar(DispatchLoginRequired, DetailView):
+    template_name = 'pedido/pagar.html'
+    model = Pedido
+    pk_url_kwarg = 'pk'
+    context_object_name = 'pedido'
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super().get_queryset(*args, **kwargs)
+        qs = qs.filter(usuario=self.request.user)
+        return qs
+
+
 class SalvarPedido(View):    
     template_name = 'pedido/pagar.html'
 
@@ -106,7 +125,10 @@ class SalvarPedido(View):
         )
 
         del self.request.session['carrinho']
-        return redirect('pedido:lista')
+        return redirect(
+            reverse('pedido:pagar', kwargs={'pk': pedido.pk})
+        )
+        #return redirect('pedido:lista')
         # return render(self.request, self.template_name, contexto)
 
 
