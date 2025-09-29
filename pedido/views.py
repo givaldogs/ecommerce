@@ -11,28 +11,33 @@ from produto.models import Variacao
 from .models import Pedido, ItemPedido
 from utils import utils
 
+
 # Create your views here.
 
-class DispatchLoginRequired(View):
+class DispatchLoginRequiredMixin(View):
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any):
         if not request.user.is_authenticated:
             messages.error(request, 'Você precisa estar logado para acessar essa página.')
             return redirect(reverse('perfil:criar'))
         
         return super().dispatch(request, *args, **kwargs)
+    
 
-class Pagar(DispatchLoginRequired, DetailView):
+class FiltroUsuarioQuerysetMixin:    
+    def get_queryset(self, *args, **kwargs):
+        qs = super().get_queryset(*args, **kwargs) # type: ignore[attr-defined]
+        qs = qs.filter(usuario=self.request.user) # type: ignore[attr-defined]
+        return qs
+    
+
+
+class Pagar(DispatchLoginRequiredMixin, FiltroUsuarioQuerysetMixin, DetailView):
     template_name = 'pedido/pagar.html'
     model = Pedido
     pk_url_kwarg = 'pk'
     context_object_name = 'pedido'
 
-    def get_queryset(self, *args, **kwargs):
-        qs = super().get_queryset(*args, **kwargs)
-        qs = qs.filter(usuario=self.request.user)
-        return qs
-
-
+   
 class SalvarPedido(View):    
     template_name = 'pedido/pagar.html'
 
@@ -132,13 +137,17 @@ class SalvarPedido(View):
         # return render(self.request, self.template_name, contexto)
 
 
-class Detalhe(View):
-    def get(self, *args, **kwargs):
-        return HttpResponse('Detalhe do Pedido')
+class Detalhe(DispatchLoginRequiredMixin, FiltroUsuarioQuerysetMixin, DetailView):
+    model = Pedido
+    context_object_name = 'pedido'
+    template_name = 'pedido/detalhe.html'
+    pk_url_kwarg = 'pk'
     
 
-class Lista(View):
-    def get(self, *args, **kwargs):
-        return HttpResponse('Lista de Pedido')
-
+class Lista(DispatchLoginRequiredMixin, FiltroUsuarioQuerysetMixin, ListView):
+    model = Pedido
+    context_object_name = 'pedidos'
+    template_name = 'pedido/lista.html'
+    paginate_by = 10
+    ordering = ['-id']
 
