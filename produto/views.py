@@ -1,3 +1,5 @@
+from typing import Any
+from django.db.models.query import QuerySet
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse  # Corrigir o import
 from django.views.generic.list import ListView
@@ -9,6 +11,7 @@ from django.db.models import Q
 from . import models
 from perfil.models import Perfil
 
+
 #from pprint import pprint
 
 # Create your views here.
@@ -19,6 +22,28 @@ class ListaProdutos(ListView):
     context_object_name = 'produtos'
     paginate_by = 10
     ordering = ['-id']
+
+
+class Busca(ListaProdutos):
+    def get_queryset(self, *args, **kwargs):
+        termo = self.request.GET.get('termo')
+        if termo:
+            self.request.session['termo'] = termo
+        else:
+            termo = self.request.session.get('termo', '')
+
+        qs = super().get_queryset(*args, **kwargs)
+
+        if not termo:
+            return qs
+        
+        qs = qs.filter(
+            Q(nome__icontains=termo) |
+            Q(descricao_curta__icontains=termo) |
+            Q(descricao_longa__icontains=termo)
+        )
+        self.request.session.save()
+        return qs
     
 
 class DetalheProduto(DetailView):
